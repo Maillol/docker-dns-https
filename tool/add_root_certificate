@@ -1,0 +1,8 @@
+#!/bin/sh
+
+add_root_certificate() {
+	cp /certs/myCA.pem /usr/local/share/ca-certificates/myCA.crt
+	update-ca-certificates
+}
+
+add_root_certificate

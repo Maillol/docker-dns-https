@@ -1,0 +1,46 @@
+#
+# Site                                     CA (Certificate Authority)
+#  |                                              |
+#  |  -- Certificate Signing Request (CSR) -->    | |  create_signed_SSL_certificate(root_certificate, private_key)
+#  |                                              | |  ---+
+#  |                                              | |     |
+#  |  <-- SSL certificate --------------------    | |  <--+
+#
+#
+#
+#
+# docker compose run --rm site create_certificate_signing_request
+# docker compose up -d site
+# docker compose run --rm tool sh -c 'add_root_certificate && curl https://www.example.fr'
+#
+services:
+  site:
+    build: ./site
+    volumes:
+      - ./certs:/certs/:rw
+      - site-tls-private:/root/tls/private
+    ports:
+      - 8080:80
+    networks:
+      default:
+        aliases:
+          - www.example.fr
+          - www.example.de
+
+  tool:
+    build: ./tool
+    volumes:
+      - ./certs:/certs/:rw
+      - ca-certificates-crt:/etc/ssl/certs/
+
+  # Mets à disposition le root certificate dans le volume "/certs" et le renouvele si besoin.
+  # Surveille si de nouvelles CSR (certificate signing request) sont déposées dans le volume "/certs"
+  # pour créer les certificats correspondant.
+  ca:
+    build: ./ca
+    volumes:
+      - ./certs:/certs/:rw
+
+volumes:
+  site-tls-private:  # Va contenir les clés privés utilisées pour la création des CSR (certificate_signing_request)
+  ca-certificates-crt:  # Pour la persistance de "/etc/ssl/certs/ca-certificates-crt" mis à jour lors de l'ajout du root certificate.

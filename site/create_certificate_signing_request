@@ -1,0 +1,19 @@
+#!/bin/bash
+
+PRIVATE_DIR=/root/tls/private
+
+function create_certificate_signing_request() {
+	 if [[ -z $1 ]]; then
+		echo "Erreur, nom de domain manquant"
+		return 1
+    fi
+	domain=$1
+
+	openssl genrsa -out "${PRIVATE_DIR}/${domain}.key" 2048
+	openssl req -new -key "${PRIVATE_DIR}/${domain}.key" \
+		-out "/certs/${domain}.csr" \
+		-subj "/C=FR/ST=Occitanie/L=Montpellier/CN=${domain}"
+}
+
+create_certificate_signing_request '*.example.fr'
+create_certificate_signing_request '*.example.de'
